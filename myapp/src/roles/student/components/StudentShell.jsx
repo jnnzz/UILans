@@ -1,5 +1,5 @@
-import { studentProfile } from '../../../shared/data.js'
 import { Icon } from '../../../shared/Icon.jsx'
+import { AccountSwitcher } from '../../../shared/AccountSwitcher.jsx'
 
 const navItems = [
   {
@@ -9,7 +9,7 @@ const navItems = [
   },
   {
     id: 'company-selection',
-    label: 'Company Selection',
+    label: 'Placement',
     icon: 'briefcase',
   },
   {
@@ -33,18 +33,13 @@ const navItems = [
     icon: 'briefcase',
   },
   {
-    id: 'announcements',
-    label: 'Announcements',
-    icon: 'megaphone',
-  },
-  {
     id: 'workspaces',
     label: 'Workspaces',
     icon: 'workspace',
   },
 ]
 
-export function StudentShell({ activeView, onNavigate, onExit, children }) {
+export function StudentShell({ activeView, onNavigate, onSwitchRole, children }) {
   return (
     <div className="student-app">
       <header className="app-header">
@@ -58,24 +53,7 @@ export function StudentShell({ activeView, onNavigate, onExit, children }) {
             <span>OJThink</span>
           </button>
 
-          <div className="profile-cluster">
-            <div className="avatar" aria-hidden="true">
-              {studentProfile.initials}
-            </div>
-            <div className="profile-copy">
-              <strong>{studentProfile.name}</strong>
-              <span>{studentProfile.role}</span>
-            </div>
-            <button
-              className="icon-button plain"
-              type="button"
-              onClick={onExit}
-              aria-label="Exit student side"
-              title="Exit student side"
-            >
-              <Icon name="logOut" size={20} />
-            </button>
-          </div>
+          <AccountSwitcher activeRole="student" onSwitchRole={onSwitchRole} />
         </div>
 
         <div className="nav-row">

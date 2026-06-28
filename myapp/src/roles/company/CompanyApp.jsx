@@ -9,6 +9,7 @@ import {
   companyStudents,
 } from '../../shared/data.js'
 import { Icon } from '../../shared/Icon.jsx'
+import { AccountSwitcher } from '../../shared/AccountSwitcher.jsx'
 
 const companyNav = [
   ['dashboard', 'Dashboard', 'dashboard'],
@@ -30,7 +31,7 @@ const companyTabs = {
   evaluations: ['Pending', 'Drafts', 'Submitted'],
 }
 
-export function CompanyApp({ onExit }) {
+export function CompanyApp({ onSwitchRole }) {
   const [activeView, setActiveView] = useState('dashboard')
   const [activeTabs, setActiveTabs] = useState({
     dashboard: 'Overview',
@@ -59,24 +60,7 @@ export function CompanyApp({ onExit }) {
             <span>OJThink</span>
           </div>
 
-          <div className="profile-cluster">
-            <div className="avatar coordinator-avatar" aria-hidden="true">
-              {companyProfile.initials}
-            </div>
-            <div className="profile-copy">
-              <strong>{companyProfile.name}</strong>
-              <span>{companyProfile.role}</span>
-            </div>
-            <button
-              className="icon-button plain"
-              type="button"
-              onClick={onExit}
-              aria-label="Exit company side"
-              title="Exit company side"
-            >
-              <Icon name="logOut" size={20} />
-            </button>
-          </div>
+          <AccountSwitcher activeRole="company" onSwitchRole={onSwitchRole} />
         </div>
 
         <div className="nav-row">

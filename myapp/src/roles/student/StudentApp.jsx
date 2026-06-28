@@ -12,7 +12,7 @@ import {
 import { WorkspaceDetail } from './pages/WorkspaceDetail.jsx'
 import { StudentShell } from './components/StudentShell.jsx'
 
-export function StudentApp({ onExit }) {
+export function StudentApp({ onSwitchRole }) {
   const [activeView, setActiveView] = useState('dashboard')
   const [selectedWorkspace, setSelectedWorkspace] = useState(null)
 
@@ -71,7 +71,7 @@ export function StudentApp({ onExit }) {
     <StudentShell
       activeView={activeView}
       onNavigate={handleNavigate}
-      onExit={onExit}
+      onSwitchRole={onSwitchRole}
     >
       {renderView()}
     </StudentShell>

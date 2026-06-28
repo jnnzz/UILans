@@ -56,19 +56,19 @@ function App() {
   }
 
   if (route === 'student') {
-    return <StudentApp onExit={() => navigate('login')} />
+    return <StudentApp onSwitchRole={navigate} />
   }
 
   if (route === 'coordinator') {
-    return <CoordinatorApp onExit={() => navigate('login')} />
+    return <CoordinatorApp onSwitchRole={navigate} />
   }
 
   if (route === 'company') {
-    return <CompanyApp onExit={() => navigate('login')} />
+    return <CompanyApp onSwitchRole={navigate} />
   }
 
   if (route === 'admin') {
-    return <AdminApp onExit={() => navigate('login')} />
+    return <AdminApp onSwitchRole={navigate} />
   }
 
   if (route === 'login') {

@@ -10,6 +10,7 @@ import {
   coordinatorStudents,
 } from '../../shared/data.js'
 import { Icon } from '../../shared/Icon.jsx'
+import { AccountSwitcher } from '../../shared/AccountSwitcher.jsx'
 
 const navItems = [
   {
@@ -38,7 +39,7 @@ const pageTabs = {
   dashboard: ['Overview', 'Queue Snapshot', 'Completion'],
   reviews: [
     'All Reviews',
-    'Proposed Companies',
+    'Company Verification',
     'Acceptance',
     'Requirements',
     'Final Packages',
@@ -48,7 +49,7 @@ const pageTabs = {
   reports: ['Generated Reports', 'Templates', 'Export History'],
 }
 
-export function CoordinatorApp({ onExit }) {
+export function CoordinatorApp({ onSwitchRole }) {
   const [activeView, setActiveView] = useState('dashboard')
   const [selectedReview, setSelectedReview] = useState(null)
   const [activeTabs, setActiveTabs] = useState({
@@ -74,24 +75,7 @@ export function CoordinatorApp({ onExit }) {
             <span>OJThink</span>
           </div>
 
-          <div className="profile-cluster">
-            <div className="avatar coordinator-avatar" aria-hidden="true">
-              {coordinatorProfile.initials}
-            </div>
-            <div className="profile-copy">
-              <strong>{coordinatorProfile.name}</strong>
-              <span>{coordinatorProfile.role}</span>
-            </div>
-            <button
-              className="icon-button plain"
-              type="button"
-              onClick={onExit}
-              aria-label="Exit coordinator side"
-              title="Exit coordinator side"
-            >
-              <Icon name="logOut" size={20} />
-            </button>
-          </div>
+          <AccountSwitcher activeRole="coordinator" onSwitchRole={onSwitchRole} />
         </div>
 
         <div className="nav-row">
@@ -169,7 +153,7 @@ function DashboardPage({ activeTab, onTabChange, onReview }) {
       <CoordinatorHero
         eyebrow={coordinatorProfile.section}
         title="Coordinator Dashboard"
-        description="Centralized monitoring for proposed companies, placement confirmation, phased requirements, final packages, and completion readiness."
+        description="Centralized monitoring for company verification, placement confirmation, phased requirements, final packages, and completion readiness."
         activePage="dashboard"
         activeTab={activeTab}
         onTabChange={onTabChange}
@@ -532,7 +516,7 @@ function ReviewQueuePanel({
 
 function FocusCard({
   title = "Today's Focus",
-  copy = 'Acceptance Confirmation reviews and final DTR packages have the highest workload. Track B proposals need coordinator remarks before students continue.',
+  copy = 'Acceptance Confirmation reviews and final DTR packages have the highest workload. Company verification requests need coordinator remarks before students continue.',
 }) {
   return (
     <section className="summary-card">
@@ -726,9 +710,9 @@ function ExportHistoryPanel({ compact = false }) {
 }
 
 function getFilteredReviews(activeTab) {
-  if (activeTab === 'Proposed Companies') {
+  if (activeTab === 'Company Verification') {
     return coordinatorReviewQueue.filter((item) =>
-      item.requirement.includes('Proposed Company'),
+      item.requirement.includes('Company Verification'),
     )
   }
 
