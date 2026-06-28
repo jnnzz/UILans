@@ -43,44 +43,128 @@ const journalEntries = [
   ['Jun 24', 'Interface audit and wireframes', 'Mapped the current screens and prepared the first dashboard wireframe.', 'Saved'],
 ]
 
-export function CompanySelectionPage() {
-  const [selectedTrack, setSelectedTrack] = useState('track-a')
-  const [activeTab, setActiveTab] = useState('Listed Companies')
+export function CompanySelectionPage({ onOpenWorkspace }) {
+  const [selectedTrack, setSelectedTrack] = useState(null)
+  const [trackBVerified, setTrackBVerified] = useState(false)
 
   const selectTrack = (track) => {
     setSelectedTrack(track)
-    setActiveTab(placementJourneys[track][0].id)
+    setTrackBVerified(false)
   }
+
+  if (!selectedTrack) {
+    return <PlacementTrackPicker onSelectTrack={selectTrack} />
+  }
+
+  const needsCompanyVerification = selectedTrack === 'track-b' && !trackBVerified
 
   return (
     <main className="student-main">
       <section className="task-page placement-page">
         <div className="task-page-heading">
           <div className="page-title">
-            <h1>Placement</h1>
-            <p>Choose the path that matches your company, then follow its guided steps.</p>
+            <span className="eyebrow">{selectedTrack === 'track-a' ? 'Track A · Listed company' : 'Track B · Outside company'}</span>
+            <h1>{needsCompanyVerification ? 'Company Verification' : 'Acceptance Confirmation'}</h1>
+            <p>
+              {needsCompanyVerification
+                ? 'Verify your outside company before continuing to placement confirmation.'
+                : 'Complete your placement details and submit the signed confirmation slip.'}
+            </p>
           </div>
-          <span className="placement-overall-status">
-            <Icon name={selectedTrack === 'track-a' ? 'checkCircle' : 'briefcase'} size={16} />
-            {selectedTrack === 'track-a' ? 'Current account: Track A' : 'Previewing Track B'}
-          </span>
+          <div className="placement-flow-header-actions">
+            <span className="placement-overall-status">
+              <Icon name={needsCompanyVerification ? 'building' : 'checkCircle'} size={16} />
+              {needsCompanyVerification ? 'Verification required' : `${selectedTrack === 'track-a' ? 'Track A' : 'Track B'} selected`}
+            </span>
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={() => {
+                setSelectedTrack(null)
+                setTrackBVerified(false)
+              }}
+            >
+              <Icon name="arrowLeft" size={16} />
+              Change track
+            </button>
+          </div>
         </div>
 
-        <TrackPathSelector selectedTrack={selectedTrack} onSelectTrack={selectTrack} />
+        {needsCompanyVerification ? (
+          <div className="direct-company-verification">
+            <CompanyVerification
+              initialMode="form"
+              onVerified={() => setTrackBVerified(true)}
+              onCancel={() => setSelectedTrack(null)}
+            />
+          </div>
+        ) : (
+          <>
+            <section className="workspace-panel direct-placement-form">
+              <div className="direct-placement-form-heading">
+                <div>
+                  <span className="eyebrow">Official placement checkpoint</span>
+                  <h2>Placement details</h2>
+                  <p>Review the information below before sending it to your coordinator.</p>
+                </div>
+                <div className="direct-placement-form-badges">
+                  <span className="phase-chip">{selectedTrack === 'track-a' ? 'Track A · Listed Company' : 'Track B · Outside Company'}</span>
+                  {selectedTrack === 'track-b' && <span className="status-pill status-accepted">Company verified</span>}
+                </div>
+              </div>
+              <AcceptanceConfirmation key={selectedTrack} initialTrack={selectedTrack} embedded />
+            </section>
 
-        <PlacementJourney
-          track={selectedTrack}
-          activeStep={activeTab}
-          onStepChange={setActiveTab}
-        />
+            <div className="placement-work-area">
+              <PlacementStatusPanel track={selectedTrack} onOpenWorkspace={onOpenWorkspace} />
+            </div>
+          </>
+        )}
+      </section>
+    </main>
+  )
+}
 
-        {activeTab === 'My Placement' && <PlacementOverview track={selectedTrack} onGoConfirmation={() => setActiveTab('Acceptance Confirmation')} />}
-        {activeTab === 'Listed Companies' && <ListedCompanies />}
-        {activeTab === 'Company Verification' && <CompanyVerification />}
-        {activeTab === 'Outside Company' && <OutsideCompanyStart onContinue={() => setActiveTab('Company Verification')} />}
-        {activeTab === 'Company Acceptance' && <CompanyAcceptance track={selectedTrack} onContinue={() => setActiveTab('Acceptance Confirmation')} />}
-        {activeTab === 'Acceptance Confirmation' && <AcceptanceConfirmation key={selectedTrack} initialTrack={selectedTrack} />}
-        {activeTab === 'Coordinator Review' && <CoordinatorReviewGuide onContinue={() => setActiveTab('My Placement')} />}
+function PlacementTrackPicker({ onSelectTrack }) {
+  return (
+    <main className="student-main placement-track-picker-main">
+      <section className="placement-track-picker" aria-labelledby="placement-track-title">
+        <header className="placement-track-picker-heading">
+          <span className="eyebrow">Placement setup</span>
+          <h1 id="placement-track-title">Choose Your Placement Track</h1>
+          <p>Select the option that describes where your company comes from. You will see only the process for that track.</p>
+        </header>
+
+        <div className="placement-track-picker-grid">
+          <button className="placement-track-pick-card featured" type="button" onClick={() => onSelectTrack('track-a')}>
+            <span className="placement-track-pick-logo">A</span>
+            <span className="placement-track-pick-type">Listed Company</span>
+            <h2>Track A</h2>
+            <p>Choose this if your company is already listed as an OJThink partner.</p>
+            <span className="placement-track-pick-facts">
+              <span><Icon name="checkCircle" size={15} /> No company verification</span>
+              <span><Icon name="workspace" size={15} /> Company workspace</span>
+            </span>
+            <span className="placement-track-pick-action">Choose Track A <Icon name="arrowUpRight" size={15} /></span>
+          </button>
+
+          <button className="placement-track-pick-card" type="button" onClick={() => onSelectTrack('track-b')}>
+            <span className="placement-track-pick-logo secondary">B</span>
+            <span className="placement-track-pick-type">Outside Company</span>
+            <h2>Track B</h2>
+            <p>Choose this if your intended company is outside or not listed in OJThink.</p>
+            <span className="placement-track-pick-facts">
+              <span><Icon name="checkCircle" size={15} /> Company verification required</span>
+              <span><Icon name="workspace" size={15} /> Shared Track B workspace</span>
+            </span>
+            <span className="placement-track-pick-action">Choose Track B <Icon name="arrowUpRight" size={15} /></span>
+          </button>
+        </div>
+
+        <div className="placement-track-shared-rule">
+          <Icon name="checkCircle" size={18} />
+          <p><strong>Both tracks follow the same final rule:</strong> placement becomes official only after the coordinator accepts the Acceptance Confirmation.</p>
+        </div>
       </section>
     </main>
   )
@@ -181,111 +265,151 @@ const placementJourneys = {
   ],
 }
 
-function TrackPathSelector({ selectedTrack, onSelectTrack }) {
-  return (
-    <section className="track-path-section" aria-labelledby="track-path-title">
-      <div className="track-path-heading">
-        <span className="track-path-kicker">Start here</span>
-        <div>
-          <h2 id="track-path-title">Which company path applies to you?</h2>
-          <p>You can switch paths anytime while exploring this prototype.</p>
-        </div>
-      </div>
-
-      <div className="track-path-grid">
-        <button
-          className={selectedTrack === 'track-a' ? 'track-path-card active' : 'track-path-card'}
-          type="button"
-          aria-pressed={selectedTrack === 'track-a'}
-          onClick={() => onSelectTrack('track-a')}
-        >
-          <span className="track-path-letter">A</span>
-          <span className="track-path-copy">
-            <span className="eyebrow">Listed partner company</span>
-            <strong>Track A</strong>
-            <small>Choose this when the company already appears in OJThink.</small>
-          </span>
-          <span className="track-path-facts">
-            <span><Icon name="checkCircle" size={15} /> Skip company verification</span>
-            <span><Icon name="workspace" size={15} /> Company workspace</span>
-          </span>
-          <span className="track-path-select">{selectedTrack === 'track-a' ? 'Selected' : 'Choose Track A'}</span>
-        </button>
-
-        <button
-          className={selectedTrack === 'track-b' ? 'track-path-card active' : 'track-path-card'}
-          type="button"
-          aria-pressed={selectedTrack === 'track-b'}
-          onClick={() => onSelectTrack('track-b')}
-        >
-          <span className="track-path-letter">B</span>
-          <span className="track-path-copy">
-            <span className="eyebrow">Outside or unlisted company</span>
-            <strong>Track B</strong>
-            <small>Choose this when your company is not listed in OJThink.</small>
-          </span>
-          <span className="track-path-facts">
-            <span><Icon name="checkCircle" size={15} /> Verification is required</span>
-            <span><Icon name="workspace" size={15} /> Shared Track B workspace</span>
-          </span>
-          <span className="track-path-select">{selectedTrack === 'track-b' ? 'Selected' : 'Choose Track B'}</span>
-        </button>
-      </div>
-
-      <div className="shared-placement-rule">
-        <Icon name="checkCircle" size={18} />
-        <p><strong>Same final rule for both tracks:</strong> placement becomes official only after the coordinator accepts your Acceptance Confirmation.</p>
-      </div>
-    </section>
-  )
-}
-
-function PlacementJourney({ track, activeStep, onStepChange }) {
+export function PlacementJourney({ track, activeStep, onStepChange }) {
   const steps = placementJourneys[track]
-  const selectedStep = steps.find((step) => step.id === activeStep) || steps[0]
-  const activeIndex = steps.findIndex((step) => step.id === selectedStep.id)
+  const actionIndex = steps.findIndex((step) => step.id === 'Acceptance Confirmation')
+  const reminderSteps = steps.slice(0, actionIndex)
+  const actionStep = steps[actionIndex]
+  const systemSteps = steps.slice(actionIndex + 1)
 
   return (
-    <section className="placement-journey" aria-label="Placement steps">
-      <div className="journey-title-row">
+    <section className="placement-process-board" aria-label={`${track === 'track-a' ? 'Track A' : 'Track B'} placement process`}>
+      <div className="process-board-heading">
         <div>
           <span className="eyebrow">{track === 'track-a' ? 'Track A process' : 'Track B process'}</span>
-          <h2>Follow these steps in order</h2>
+          <h2>Your placement checklist</h2>
         </div>
         <span className="phase-chip">{track === 'track-a' ? 'Listed Company' : 'Outside Company'}</span>
       </div>
-      <div className="placement-stepper" style={{ '--step-count': steps.length }}>
-        {steps.map((step, index) => (
-          <button
-            className={activeStep === step.id ? 'journey-step active' : 'journey-step'}
-            type="button"
-            key={step.id}
-            onClick={() => onStepChange(step.id)}
-          >
-            <span className={`journey-marker ${index < activeIndex ? 'completed' : index === activeIndex ? 'current' : 'upcoming'}`}>
-              {index < activeIndex ? <Icon name="checkCircle" size={17} /> : index + 1}
-            </span>
-            <strong>{step.title}</strong>
-            <small>{step.short}</small>
-            {index < steps.length - 1 && <i className={index < activeIndex ? 'completed' : ''} aria-hidden="true" />}
-          </button>
-        ))}
-      </div>
 
-      <div className="journey-guidance">
-        <span className="journey-guidance-number">Step {activeIndex + 1}</span>
-        <div>
-          <span className="eyebrow">{selectedStep.badge}</span>
-          <strong>{selectedStep.detail}</strong>
-          <p>{selectedStep.action}</p>
-        </div>
-        <span className="status-pill status-review">{selectedStep.badge}</span>
+      <div className="placement-process-groups">
+        <section className="process-group process-reminders">
+          <div className="process-group-label">
+            <span className="process-group-icon muted"><Icon name="checkCircle" size={17} /></span>
+            <div><strong>Before you submit</strong><small>Review these preparation steps</small></div>
+          </div>
+          <div className="process-reminder-list">
+            {reminderSteps.map((step, index) => (
+              <button
+                className={activeStep === step.id ? 'process-reminder active' : 'process-reminder'}
+                type="button"
+                key={step.id}
+                onClick={() => onStepChange(step.id)}
+              >
+                <span className="process-step-number">{index + 1}</span>
+                <span>
+                  <strong>{step.title}</strong>
+                  <small>{step.short}</small>
+                </span>
+                <span className="process-review-link">Review</span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="process-group process-action">
+          <div className="process-group-label">
+            <span className="process-group-icon action"><Icon name="file" size={17} /></span>
+            <div><strong>Your required action</strong><small>Complete this inside OJThink</small></div>
+          </div>
+          <div
+            className={activeStep === actionStep.id ? 'process-action-card active' : 'process-action-card'}
+          >
+            <div className="process-action-intro">
+              <span className="process-action-number">{actionIndex + 1}</span>
+              <span>
+                <span className="eyebrow">Official placement checkpoint</span>
+                <strong>{actionStep.title}</strong>
+                <small>{actionStep.detail}</small>
+              </span>
+            </div>
+            <AcceptanceConfirmation
+              key={track}
+              initialTrack={track}
+              embedded
+              onSubmit={() => onStepChange('Coordinator Review')}
+            />
+          </div>
+        </section>
+
+        <section className="process-group process-system">
+          <div className="process-group-label">
+            <span className="process-group-icon system"><Icon name="clock" size={17} /></span>
+            <div><strong>What happens next</strong><small>OJThink and your coordinator handle these steps</small></div>
+          </div>
+          <div className="system-step-list">
+            {systemSteps.map((step, index) => (
+              <article key={step.id}>
+                <span className="process-step-number">{actionIndex + index + 2}</span>
+                <div><strong>{step.title}</strong><small>{step.short}</small></div>
+              </article>
+            ))}
+          </div>
+        </section>
       </div>
     </section>
   )
 }
 
-function PlacementOverview({ track, onGoConfirmation }) {
+function PlacementStatusPanel({ track, onOpenWorkspace }) {
+  const isTrackB = track === 'track-b'
+  const company = isTrackB ? 'Acme Technologies Cebu' : 'Full Scale PH'
+  const role = isTrackB ? 'QA Intern' : 'Product Design Intern'
+  const workspace = isTrackB ? 'Track B Workspace' : 'Company Workspace'
+  const workspaceId = isTrackB ? 'track-b' : 'company'
+
+  return (
+    <aside className="workspace-panel placement-status-panel" aria-label="Placement status">
+      <div className="placement-status-heading">
+        <div>
+          <span className="eyebrow">Placement status</span>
+          <h2>Placement confirmed</h2>
+        </div>
+        <span className="status-pill status-accepted">Accepted</span>
+      </div>
+
+      <div className="confirmed-company">
+        <span className="placement-company-mark">{isTrackB ? 'AT' : 'FS'}</span>
+        <div>
+          <span className="phase-chip">{isTrackB ? 'Track B' : 'Track A'}</span>
+          <strong>{company}</strong>
+          <small>{role}</small>
+        </div>
+      </div>
+
+      <div className="confirmed-placement-details">
+        <span><small>Track</small><strong>{isTrackB ? 'Track B · Outside company' : 'Track A · Listed company'}</strong></span>
+        <span><small>Start date</small><strong>June 16, 2026</strong></span>
+        <span><small>Required hours</small><strong>540 hours</strong></span>
+        <span><small>Workspace</small><strong>{workspace}</strong></span>
+      </div>
+
+      <div className="persistent-review-history">
+        <div>
+          <span className="eyebrow">Review history</span>
+          <strong>Latest updates</strong>
+        </div>
+        {[
+          ['Accepted', 'Jun 18 · 2:35 PM', 'Placement confirmed by coordinator'],
+          ['Under review', 'Jun 18 · 9:10 AM', 'Review started by Dr. Santos'],
+          ['Submitted', 'Jun 17 · 4:42 PM', 'Confirmation Slip submitted'],
+        ].map(([status, time, detail]) => (
+          <div className="persistent-review-item" key={status}>
+            <span />
+            <div><small>{time}</small><strong>{status}</strong><p>{detail}</p></div>
+          </div>
+        ))}
+      </div>
+
+      <button className="primary-button open-workspace-button" type="button" onClick={() => onOpenWorkspace?.(workspaceId)}>
+        <Icon name="workspace" size={17} />
+        Open {workspace}
+      </button>
+    </aside>
+  )
+}
+
+export function PlacementOverview({ track, onGoConfirmation }) {
   const isTrackB = track === 'track-b'
 
   return (
@@ -314,7 +438,7 @@ function PlacementOverview({ track, onGoConfirmation }) {
   )
 }
 
-function OutsideCompanyStart({ onContinue }) {
+export function OutsideCompanyStart({ onContinue }) {
   return (
     <div className="outside-company-layout">
       <section className="workspace-panel outside-company-card">
@@ -352,7 +476,7 @@ function OutsideCompanyStart({ onContinue }) {
   )
 }
 
-function CompanyAcceptance({ track, onContinue }) {
+export function CompanyAcceptance({ track, onContinue }) {
   const isTrackB = track === 'track-b'
 
   return (
@@ -396,7 +520,7 @@ function CompanyAcceptance({ track, onContinue }) {
   )
 }
 
-function CoordinatorReviewGuide({ onContinue }) {
+export function CoordinatorReviewGuide({ onContinue }) {
   return (
     <div className="coordinator-review-guide">
       <section className="workspace-panel coordinator-review-card">
@@ -436,7 +560,7 @@ function CoordinatorReviewGuide({ onContinue }) {
   )
 }
 
-function ListedCompanies() {
+export function ListedCompanies() {
   return (
     <section className="task-grid company-browser-grid">
       {[
@@ -464,8 +588,8 @@ function ListedCompanies() {
   )
 }
 
-function CompanyVerification() {
-  const [mode, setMode] = useState('status')
+export function CompanyVerification({ initialMode = 'status', onVerified, onCancel }) {
+  const [mode, setMode] = useState(initialMode)
 
   if (mode === 'form') {
     return (
@@ -475,7 +599,16 @@ function CompanyVerification() {
             <span className="eyebrow">Outside or unlisted company</span>
             <h2>New Verification Request</h2>
           </div>
-          <button className="secondary-button" type="button" onClick={() => setMode('status')}>Cancel</button>
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={() => {
+              if (onCancel) onCancel()
+              else setMode('status')
+            }}
+          >
+            Cancel
+          </button>
         </div>
         <div className="form-note">
           <Icon name="building" size={18} />
@@ -506,7 +639,16 @@ function CompanyVerification() {
         </div>
         <div className="form-actions">
           <button className="secondary-button" type="button">Save draft</button>
-          <button className="primary-button" type="button" onClick={() => setMode('status')}>Submit for verification</button>
+          <button
+            className="primary-button"
+            type="button"
+            onClick={() => {
+              if (onVerified) onVerified()
+              else setMode('status')
+            }}
+          >
+            Submit for verification
+          </button>
         </div>
       </section>
     )
@@ -554,72 +696,70 @@ function CompanyVerification() {
   )
 }
 
-function AcceptanceConfirmation({ initialTrack = 'track-a' }) {
+function AcceptanceConfirmation({ initialTrack = 'track-a', embedded = false, onSubmit }) {
   const selectedTrack = initialTrack
   const isTrackB = selectedTrack === 'track-b'
+  const [submitted, setSubmitted] = useState(false)
 
-  return (
-    <div className="confirmation-layout">
-      <section className="workspace-panel confirmation-form">
-        <div className="coordinator-panel-heading compact">
+  const form = (
+    <>
+      {!embedded && <div className="coordinator-panel-heading compact">
+        <div>
+          <span className="eyebrow">Official placement checkpoint</span>
+          <h2>Acceptance Confirmation</h2>
+        </div>
+        <span className="status-pill status-accepted">Accepted</span>
+      </div>}
+
+      <form
+        className="confirmation-summary"
+        onSubmit={(event) => {
+          event.preventDefault()
+          setSubmitted(true)
+          onSubmit?.()
+        }}
+      >
+        <label className="task-field">
+          <span>{isTrackB ? 'Verified company' : 'Listed company'}</span>
+          <select defaultValue={isTrackB ? 'Acme Technologies Cebu' : 'Full Scale PH'}>
+            <option>{isTrackB ? 'Acme Technologies Cebu' : 'Full Scale PH'}</option>
+          </select>
+        </label>
+        <label className="task-field">
+          <span>OJT position</span>
+          <input value={isTrackB ? 'QA Intern' : 'Product Design Intern'} readOnly />
+        </label>
+        <label className="task-field">
+          <span>Start date</span>
+          <input value="June 16, 2026" readOnly />
+        </label>
+        <label className="task-field full-span">
+          <span>Signed Confirmation Slip</span>
+          <div className="attached-file">
+            <Icon name="file" size={18} />
+            <div><strong>confirmation-slip-elena.pdf</strong><small>PDF · 1.8 MB · Version 1</small></div>
+            <button className="details-button" type="button">View</button>
+          </div>
+        </label>
+        <div className="confirmation-submit-row full-span">
           <div>
-            <span className="eyebrow">Official placement checkpoint</span>
-            <h2>Acceptance Confirmation</h2>
+            <strong>{submitted ? 'Confirmation submitted' : 'Ready for coordinator review?'}</strong>
+            <small>{submitted ? 'Your placement details are now queued for review.' : 'Check the details and signed slip before submitting.'}</small>
           </div>
-          <span className="status-pill status-accepted">Accepted</span>
+          <button className="primary-button" type="submit" disabled={submitted}>
+            <Icon name={submitted ? 'checkCircle' : 'upload'} size={16} />
+            {submitted ? 'Submitted' : 'Submit Confirmation'}
+          </button>
         </div>
-
-        <div className="selected-track-summary">
-          <span className="selected-track-letter">{isTrackB ? 'B' : 'A'}</span>
-          <div>
-            <span className="eyebrow">Selected placement path</span>
-            <strong>{isTrackB ? 'Track B' : 'Track A'}</strong>
-            <small>{isTrackB ? 'Verified outside or unlisted company' : 'Listed OJThink partner company'}</small>
-          </div>
-          <span className="selected-track-locked"><Icon name="checkCircle" size={15} /> Selected earlier</span>
-        </div>
-
-        <div className="confirmation-summary">
-          <label className="task-field">
-            <span>{isTrackB ? 'Verified company' : 'Listed company'}</span>
-            <select defaultValue={isTrackB ? 'Acme Technologies Cebu' : 'Full Scale PH'}>
-              <option>{isTrackB ? 'Acme Technologies Cebu' : 'Full Scale PH'}</option>
-            </select>
-          </label>
-          <label className="task-field">
-            <span>OJT position</span>
-            <input value={isTrackB ? 'QA Intern' : 'Product Design Intern'} readOnly />
-          </label>
-          <label className="task-field">
-            <span>Start date</span>
-            <input value="June 16, 2026" readOnly />
-          </label>
-          <label className="task-field full-span">
-            <span>Signed Confirmation Slip</span>
-            <div className="attached-file">
-              <Icon name="file" size={18} />
-              <div><strong>confirmation-slip-elena.pdf</strong><small>PDF · 1.8 MB · Version 1</small></div>
-              <button className="details-button" type="button">View</button>
-            </div>
-          </label>
-        </div>
-      </section>
-      <aside className="workspace-panel status-timeline">
-        <span className="eyebrow">Review history</span>
-        <h2>Placement confirmed</h2>
-        {[
-          ['Jun 18 · 2:35 PM', 'Accepted', 'Placement confirmed by coordinator'],
-          ['Jun 18 · 9:10 AM', 'Under review', 'Review started by Dr. Santos'],
-          ['Jun 17 · 4:42 PM', 'Submitted', 'Confirmation Slip submitted'],
-        ].map(([time, status, detail]) => (
-          <div className="timeline-item" key={time}>
-            <span />
-            <div><small>{time}</small><strong>{status}</strong><p>{detail}</p></div>
-          </div>
-        ))}
-      </aside>
-    </div>
+      </form>
+    </>
   )
+
+  if (embedded) {
+    return <div className="inline-confirmation-form">{form}</div>
+  }
+
+  return <section className="workspace-panel confirmation-form">{form}</section>
 }
 
 export function RequirementsPage() {
@@ -663,20 +803,133 @@ export function RequirementsPage() {
 
 export function DtrPage() {
   const [activeTab, setActiveTab] = useState('Activity')
+  const [entryModalOpen, setEntryModalOpen] = useState(false)
 
   return (
-    <TaskPage
-      title="DTR / TITO"
-      description="Record daily attendance and prepare one final DTR package for coordinator review."
-      tabs={['Activity', 'Daily Records', 'Final DTR Package']}
-      activeTab={activeTab}
-      onTabChange={setActiveTab}
-      action={<button className="primary-button" type="button"><Icon name="clock" size={17} /> Add time entry</button>}
-    >
-      {activeTab === 'Activity' && <DtrActivity />}
-      {activeTab === 'Daily Records' && <DtrRecords />}
-      {activeTab === 'Final DTR Package' && <FinalPackage type="DTR" />}
-    </TaskPage>
+    <>
+      <TaskPage
+        title="DTR / TITO"
+        description="Record daily attendance and prepare one final DTR package for coordinator review."
+        tabs={['Activity', 'Daily Records', 'Final DTR Package']}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        action={(
+          <button className="primary-button" type="button" onClick={() => setEntryModalOpen(true)}>
+            <Icon name="clock" size={17} /> Add time entry
+          </button>
+        )}
+      >
+        {activeTab === 'Activity' && <DtrActivity />}
+        {activeTab === 'Daily Records' && <DtrRecords />}
+        {activeTab === 'Final DTR Package' && <FinalPackage type="DTR" />}
+      </TaskPage>
+      {entryModalOpen && <DtrEntryModal onClose={() => setEntryModalOpen(false)} />}
+    </>
+  )
+}
+
+function DtrEntryModal({ onClose }) {
+  const [method, setMethod] = useState('manual')
+  const [qrReady, setQrReady] = useState(false)
+
+  return (
+    <div className="dtr-entry-backdrop" role="presentation" onClick={onClose}>
+      <section
+        className="dtr-entry-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dtr-entry-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <header className="dtr-entry-modal-header">
+          <div>
+            <span className="eyebrow">Daily time record</span>
+            <h2 id="dtr-entry-title">Add DTR Entry</h2>
+            <p>Choose how you want to record today’s attendance.</p>
+          </div>
+          <button className="dtr-modal-close" type="button" aria-label="Close DTR entry" onClick={onClose}>×</button>
+        </header>
+
+        <div className="dtr-method-picker" aria-label="DTR entry method">
+          <button
+            className={method === 'manual' ? 'dtr-method-card active' : 'dtr-method-card'}
+            type="button"
+            onClick={() => setMethod('manual')}
+          >
+            <span><Icon name="clock" size={19} /></span>
+            <div><strong>Manual Entry</strong><small>Enter your date and work hours</small></div>
+            <i>{method === 'manual' ? 'Selected' : 'Choose'}</i>
+          </button>
+          <button
+            className={method === 'qr' ? 'dtr-method-card active' : 'dtr-method-card'}
+            type="button"
+            onClick={() => setMethod('qr')}
+          >
+            <span><Icon name="qrCode" size={19} /></span>
+            <div><strong>QR Scan</strong><small>Scan the workplace attendance QR</small></div>
+            <i>{method === 'qr' ? 'Selected' : 'Choose'}</i>
+          </button>
+        </div>
+
+        {method === 'manual' ? (
+          <form
+            className="dtr-manual-form"
+            onSubmit={(event) => {
+              event.preventDefault()
+              onClose()
+            }}
+          >
+            <div className="dtr-entry-field-grid">
+              <label className="dtr-entry-field">
+                <span>Date</span>
+                <input type="date" defaultValue="2026-06-29" />
+              </label>
+              <label className="dtr-entry-field">
+                <span>Break (minutes)</span>
+                <input type="number" defaultValue="60" min="0" />
+              </label>
+              <label className="dtr-entry-field">
+                <span>Time in</span>
+                <input type="time" />
+              </label>
+              <label className="dtr-entry-field">
+                <span>Time out</span>
+                <input type="time" />
+              </label>
+              <label className="dtr-entry-field full-span">
+                <span>Task description</span>
+                <textarea rows="4" placeholder="Describe the tasks you completed today..." />
+              </label>
+            </div>
+            <footer className="dtr-entry-modal-footer">
+              <button className="secondary-button" type="button" onClick={onClose}>Cancel</button>
+              <button className="primary-button" type="submit"><Icon name="checkCircle" size={16} /> Add Entry</button>
+            </footer>
+          </form>
+        ) : (
+          <div className="dtr-qr-content">
+            <div className={qrReady ? 'dtr-qr-scanner active' : 'dtr-qr-scanner'}>
+              <span className="dtr-qr-frame"><Icon name="qrCode" size={54} /></span>
+              <div>
+                <strong>{qrReady ? 'Scanner ready' : 'Scan your workplace QR code'}</strong>
+                <p>{qrReady ? 'Place the attendance QR code inside the frame.' : 'OJThink will use your device camera to record your time.'}</p>
+              </div>
+              {qrReady && <span className="status-pill status-accepted">Camera active</span>}
+            </div>
+            <div className="dtr-qr-note">
+              <Icon name="checkCircle" size={18} />
+              <p><strong>QR records one attendance event at a time.</strong> Scan once for time in and scan again when your duty ends.</p>
+            </div>
+            <footer className="dtr-entry-modal-footer">
+              <button className="secondary-button" type="button" onClick={onClose}>Cancel</button>
+              <button className="primary-button" type="button" onClick={() => setQrReady(true)}>
+                <Icon name="qrCode" size={16} /> {qrReady ? 'Scanner Active' : 'Start QR Scanner'}
+              </button>
+            </footer>
+          </div>
+        )}
+      </section>
+    </div>
   )
 }
 

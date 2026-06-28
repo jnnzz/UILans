@@ -165,6 +165,17 @@ const iconPaths = {
       <path d="M8 16h5" />
     </>
   ),
+  qrCode: (
+    <>
+      <path d="M4 4h6v6H4z" />
+      <path d="M14 4h6v6h-6z" />
+      <path d="M4 14h6v6H4z" />
+      <path d="M14 14h2v2h-2z" />
+      <path d="M18 14h2v2h-2z" />
+      <path d="M14 18h2v2h-2z" />
+      <path d="M18 18h2v2h-2z" />
+    </>
+  ),
 }
 
 export function Icon({ name, size = 20, className = '', strokeWidth = 2 }) {

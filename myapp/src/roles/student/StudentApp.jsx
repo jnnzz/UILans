@@ -27,7 +27,14 @@ export function StudentApp({ onSwitchRole }) {
     }
 
     if (activeView === 'company-selection') {
-      return <CompanySelectionPage />
+      return (
+        <CompanySelectionPage
+          onOpenWorkspace={(workspaceId) => {
+            setSelectedWorkspace(workspaceId)
+            setActiveView('workspaces')
+          }}
+        />
+      )
     }
 
     if (activeView === 'requirements') {
