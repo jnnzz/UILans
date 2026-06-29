@@ -226,6 +226,155 @@ function DashboardTabContent({ activeTab, onReview }) {
   )
 }
 
+export function CoordinatorAnalytics() {
+  const workload = [
+    ['Jan', 18],
+    ['Feb', 25],
+    ['Mar', 31],
+    ['Apr', 22],
+    ['May', 29],
+    ['Jun', 34],
+    ['Jul', 27],
+  ]
+  const [activeMonth, setActiveMonth] = useState(5)
+  const activeWorkload = workload[activeMonth]
+
+  return (
+    <section className="coordinator-analytics" aria-label="Coordinator analytics">
+      <article className="analytics-card analytics-area-card">
+        <header className="analytics-card-heading">
+          <div>
+            <span className="eyebrow">Submission analytics</span>
+            <h2>Review activity</h2>
+            <p>Daily student submissions compared with completed coordinator reviews.</p>
+          </div>
+          <div className="analytics-period-toggle" aria-label="Review activity period">
+            <button className="active" type="button">30 Days</button>
+            <button type="button">Term</button>
+          </div>
+        </header>
+
+        <div className="area-chart-canvas" aria-label="Submission and review activity chart">
+          <svg viewBox="0 0 760 240" preserveAspectRatio="none" role="img" aria-label="Daily submissions and completed reviews">
+            <defs>
+              <linearGradient id="reviewAreaPrimary" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#6f2f95" stopOpacity="0.28" />
+                <stop offset="100%" stopColor="#6f2f95" stopOpacity="0.02" />
+              </linearGradient>
+              <linearGradient id="reviewAreaSecondary" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#d69d22" stopOpacity="0.2" />
+                <stop offset="100%" stopColor="#d69d22" stopOpacity="0.01" />
+              </linearGradient>
+            </defs>
+            {[35, 85, 135, 185, 235].map((y) => (
+              <line className="analytics-grid-line" x1="0" x2="760" y1={y} y2={y} key={y} />
+            ))}
+            <path
+              className="analytics-area secondary"
+              d="M0 80 C55 102 84 130 123 153 C165 178 206 132 248 118 C292 104 326 136 370 124 C418 112 445 66 492 78 C538 91 571 120 618 103 C668 85 714 75 760 112 L760 240 L0 240 Z"
+            />
+            <path
+              className="analytics-line secondary"
+              d="M0 80 C55 102 84 130 123 153 C165 178 206 132 248 118 C292 104 326 136 370 124 C418 112 445 66 492 78 C538 91 571 120 618 103 C668 85 714 75 760 112"
+            />
+            <path
+              className="analytics-area primary"
+              d="M0 207 C49 172 82 96 125 105 C168 113 190 181 233 169 C278 157 287 48 338 54 C386 60 395 160 447 166 C499 171 527 89 574 84 C622 78 654 116 699 126 C728 133 746 118 760 106 L760 240 L0 240 Z"
+            />
+            <path
+              className="analytics-line primary"
+              d="M0 207 C49 172 82 96 125 105 C168 113 190 181 233 169 C278 157 287 48 338 54 C386 60 395 160 447 166 C499 171 527 89 574 84 C622 78 654 116 699 126 C728 133 746 118 760 106"
+            />
+            <circle className="analytics-focus-ring" cx="574" cy="84" r="7" />
+            <circle className="analytics-focus-dot" cx="574" cy="84" r="3" />
+          </svg>
+          <span className="analytics-chart-callout area-callout"><strong>26</strong><small>Jun 24</small></span>
+        </div>
+        <div className="analytics-axis">
+          {['1', '5', '10', '15', '20', '25', '30'].map((day) => <span key={day}>{day}</span>)}
+        </div>
+        <footer className="analytics-card-footer">
+          <div className="analytics-legend">
+            <span><i className="primary" /> Submissions</span>
+            <span><i className="secondary" /> Reviews completed</span>
+          </div>
+          <div className="analytics-summary"><strong>82%</strong><span>reviewed within 3 days</span></div>
+        </footer>
+      </article>
+
+      <article className="analytics-card analytics-bar-card">
+        <header className="analytics-card-heading">
+          <div>
+            <span className="eyebrow">Review workload</span>
+            <h2>{activeWorkload[1]} pending</h2>
+            <p>{activeWorkload[0]} 2026</p>
+          </div>
+          <span className="analytics-change positive">−8% this month</span>
+        </header>
+
+        <div className="workload-chart">
+          <div className="workload-y-axis" aria-hidden="true">
+            <span>40</span><span>30</span><span>20</span><span>10</span><span>0</span>
+          </div>
+          <div className="workload-bars">
+            {workload.map(([month, value], index) => (
+              <button
+                className={index === activeMonth ? 'workload-bar active' : 'workload-bar'}
+                style={{ '--bar-height': `${(value / 40) * 100}%` }}
+                type="button"
+                key={month}
+                onClick={() => setActiveMonth(index)}
+                aria-label={`${month}: ${value} pending reviews`}
+              >
+                <span>{index === activeMonth && <i>{value}</i>}</span>
+                <small>{month}</small>
+              </button>
+            ))}
+          </div>
+        </div>
+      </article>
+
+      <article className="analytics-card analytics-trend-card">
+        <header className="analytics-card-heading">
+          <div>
+            <span className="eyebrow">Student progress</span>
+            <h2>Completion readiness trend</h2>
+            <p>Students who have completed every required placement phase.</p>
+          </div>
+          <div className="trend-total"><strong>42</strong><span>ready now</span></div>
+        </header>
+        <div className="trend-chart-canvas" aria-label="Completion readiness trend from January to September">
+          <svg viewBox="0 0 1120 220" preserveAspectRatio="none" role="img" aria-label="Monthly completion readiness">
+            <defs>
+              <linearGradient id="completionArea" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#d69d22" stopOpacity="0.2" />
+                <stop offset="100%" stopColor="#d69d22" stopOpacity="0.01" />
+              </linearGradient>
+            </defs>
+            {[40, 95, 150, 205].map((y) => (
+              <line className="analytics-grid-line" x1="0" x2="1120" y1={y} y2={y} key={y} />
+            ))}
+            <path
+              className="trend-area"
+              d="M0 182 C55 173 84 131 140 137 C195 142 214 165 280 145 C337 128 355 83 420 91 C478 99 496 128 560 112 C618 96 636 58 700 68 C764 78 777 106 840 94 C906 81 927 45 980 56 C1030 66 1069 49 1120 34 L1120 220 L0 220 Z"
+            />
+            <path
+              className="trend-line"
+              d="M0 182 C55 173 84 131 140 137 C195 142 214 165 280 145 C337 128 355 83 420 91 C478 99 496 128 560 112 C618 96 636 58 700 68 C764 78 777 106 840 94 C906 81 927 45 980 56 C1030 66 1069 49 1120 34"
+            />
+            <circle className="trend-focus-ring" cx="980" cy="56" r="7" />
+            <circle className="trend-focus-dot" cx="980" cy="56" r="3" />
+          </svg>
+          <span className="analytics-chart-callout trend-callout"><strong>38</strong><small>August</small></span>
+        </div>
+        <div className="analytics-axis trend-axis">
+          {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'].map((month) => <span key={month}>{month}</span>)}
+        </div>
+      </article>
+    </section>
+  )
+}
+
 function ReviewQueuePage({ activeTab, onTabChange, onReview }) {
   const filteredQueue = getFilteredReviews(activeTab)
 
@@ -440,17 +589,39 @@ function ReviewQueueSummary() {
   ]
 
   return (
-    <section className="queue-summary-grid" aria-label="Review queue summary">
-      {queueStats.map((stat) => (
-        <article
-          className={`queue-summary-card queue-summary-${stat.tone}`}
-          key={stat.label}
-        >
-          <span>{stat.label}</span>
-          <strong>{stat.value}</strong>
-          <small>{stat.detail}</small>
-        </article>
-      ))}
+    <section className="analytics-card queue-status-chart-panel" aria-label="Review queue status chart">
+      <header className="analytics-card-heading">
+        <div>
+          <span className="eyebrow">Review queue analytics</span>
+          <h2>Submission status</h2>
+          <p>Current volume of submissions at each review state.</p>
+        </div>
+        <div className="analytics-summary"><strong>102</strong><span>total submissions</span></div>
+      </header>
+      <div className="queue-status-chart">
+        {queueStats.map((stat) => (
+          <button
+            className={`queue-status-column ${stat.tone}`}
+            type="button"
+            key={stat.label}
+            aria-label={`${stat.label}: ${stat.value}, ${stat.detail}`}
+          >
+            <div className="queue-status-value">
+              <span style={{ '--status-height': `${(Number(stat.value) / 70) * 100}%` }}>
+                <strong>{stat.value}</strong>
+              </span>
+            </div>
+            <div>
+              <strong>{stat.label}</strong>
+              <small>{stat.detail}</small>
+            </div>
+            <span className="chart-hover-tooltip">
+              <strong>{stat.value} {stat.label}</strong>
+              <small>{stat.detail}</small>
+            </span>
+          </button>
+        ))}
+      </div>
     </section>
   )
 }
@@ -550,39 +721,56 @@ function ReportShortcutCard() {
 }
 
 function ChecklistPanel({ compact = false }) {
+  const [activePhase, setActivePhase] = useState(0)
+  const selectedPhase = coordinatorChecklist[activePhase]
+
   return (
-    <section className={compact ? 'checklist-panel compact-panel' : 'checklist-panel'}>
-      <div className="coordinator-panel-heading">
+    <section className={compact ? 'analytics-card requirement-chart-panel compact-panel' : 'analytics-card requirement-chart-panel'}>
+      <div className="analytics-card-heading">
         <div>
           <span className="eyebrow">Checklist monitoring</span>
           <h2>Requirement Phases</h2>
+          <p>Completion, pending work, and revisions by OJT phase.</p>
+        </div>
+        <div className="phase-chart-highlight">
+          <strong>{selectedPhase.completed}%</strong>
+          <span>{selectedPhase.phase} complete</span>
         </div>
       </div>
 
-      <div className="phase-grid">
-        {coordinatorChecklist.map((phase) => (
-          <article className="phase-card" key={phase.phase}>
-            <div className="phase-topline">
-              <h3>{phase.phase}</h3>
-              <span>{phase.completed}%</span>
-            </div>
-            <div
-              className="phase-progress"
-              style={{ '--phase-progress': `${phase.completed}%` }}
-              aria-label={`${phase.phase} ${phase.completed} percent complete`}
-            ></div>
-            <div className="phase-numbers">
-              <span>
-                <strong>{phase.pending}</strong>
-                Pending
+      <div className="requirement-phase-chart">
+        <div className="requirement-y-axis" aria-hidden="true">
+          <span>100</span><span>75</span><span>50</span><span>25</span><span>0</span>
+        </div>
+        <div className="requirement-phase-groups">
+          {coordinatorChecklist.map((phase, index) => (
+            <button
+              className={index === activePhase ? 'requirement-phase-group active' : 'requirement-phase-group'}
+              type="button"
+              key={phase.phase}
+              onClick={() => setActivePhase(index)}
+              onMouseEnter={() => setActivePhase(index)}
+              onFocus={() => setActivePhase(index)}
+              aria-label={`${phase.phase}: ${phase.completed}% completed, ${phase.pending} pending, ${phase.needsRevision} revisions`}
+            >
+              <span className="requirement-phase-bars">
+                <i className="completed" style={{ '--phase-bar-height': `${phase.completed}%` }}><b>{phase.completed}</b></i>
+                <i className="pending" style={{ '--phase-bar-height': `${phase.pending}%` }}><b>{phase.pending}</b></i>
+                <i className="revision" style={{ '--phase-bar-height': `${phase.needsRevision}%` }}><b>{phase.needsRevision}</b></i>
               </span>
-              <span>
-                <strong>{phase.needsRevision}</strong>
-                Revision
+              <strong>{phase.phase}</strong>
+              <span className="chart-hover-tooltip phase-tooltip">
+                <strong>{phase.phase}</strong>
+                <small>{phase.completed}% completed · {phase.pending} pending · {phase.needsRevision} revisions</small>
               </span>
-            </div>
-          </article>
-        ))}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="analytics-legend requirement-chart-legend">
+        <span><i className="primary" /> Completed</span>
+        <span><i className="secondary" /> Pending</span>
+        <span><i className="revision" /> Needs revision</span>
       </div>
     </section>
   )
@@ -590,34 +778,59 @@ function ChecklistPanel({ compact = false }) {
 
 function StudentMonitorPanel() {
   return (
-    <section className="student-monitor-panel">
-      <div className="coordinator-panel-heading">
+    <section className="analytics-card student-progress-chart-panel">
+      <div className="analytics-card-heading">
         <div>
           <span className="eyebrow">Student monitoring</span>
           <h2>Completion Progress</h2>
+          <p>Current requirement completion across monitored students.</p>
         </div>
+        <div className="trend-total"><strong>77%</strong><span>average progress</span></div>
       </div>
 
-      <div className="monitor-list">
+      <div className="student-progress-chart" aria-label="Student completion progress line chart">
+        <svg viewBox="0 0 720 250" preserveAspectRatio="none" role="img" aria-label="Completion progress: Lance 80%, Andrea 64%, Miguel 72%, Jessa 91%">
+          <defs>
+            <linearGradient id="studentProgressArea" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#6f2f95" stopOpacity="0.24" />
+              <stop offset="100%" stopColor="#6f2f95" stopOpacity="0.02" />
+            </linearGradient>
+          </defs>
+          {[35, 90, 145, 200, 245].map((y) => (
+            <line className="analytics-grid-line" x1="0" x2="720" y1={y} y2={y} key={y} />
+          ))}
+          <path className="student-progress-area" d="M35 83 C105 83 145 132 225 132 C305 132 355 111 430 111 C510 111 555 59 685 59 L685 250 L35 250 Z" />
+          <path className="student-progress-line" d="M35 83 C105 83 145 132 225 132 C305 132 355 111 430 111 C510 111 555 59 685 59" />
+          {[
+            [35, 83],
+            [225, 132],
+            [430, 111],
+            [685, 59],
+          ].map(([x, y]) => <circle className="student-progress-dot" cx={x} cy={y} r="5" key={`${x}-${y}`} />)}
+        </svg>
+        {[
+          ['Lance Timothy Satorre', 80, 2, '4.9%', '33.2%'],
+          ['Andrea Mae Lim', 64, 5, '31.25%', '52.8%'],
+          ['Miguel Santos', 72, 3, '59.7%', '44.4%'],
+          ['Jessa Marie Yu', 91, 1, '95.1%', '23.6%'],
+        ].map(([name, progress, missing, left, top]) => (
+          <button
+            className="student-progress-hover-point"
+            style={{ '--point-left': left, '--point-top': top }}
+            type="button"
+            key={name}
+            aria-label={`${name}: ${progress}% complete, ${missing} missing`}
+          >
+            <span className="chart-hover-tooltip student-tooltip">
+              <strong>{name}</strong>
+              <small>{progress}% complete · {missing} missing</small>
+            </span>
+          </button>
+        ))}
+      </div>
+      <div className="student-progress-axis">
         {coordinatorStudents.map((student) => (
-          <article className="monitor-row" key={student.name}>
-            <div>
-              <h3>{student.name}</h3>
-              <span>
-                {student.section} - {student.company}
-              </span>
-            </div>
-                <span className="track-pill">{student.track}</span>
-                <span className="placement-pill">{student.placementStatus}</span>
-                <div className="monitor-progress">
-              <div
-                style={{ '--student-progress': `${student.progress}%` }}
-                aria-label={`${student.progress} percent complete`}
-              ></div>
-            </div>
-            <strong>{student.progress}%</strong>
-            <small>{student.missing} missing</small>
-          </article>
+          <span key={student.name}><strong>{student.name.split(' ')[0]}</strong><small>{student.track}</small></span>
         ))}
       </div>
     </section>
