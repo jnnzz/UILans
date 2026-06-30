@@ -5,6 +5,7 @@ import { StudentDashboard } from './pages/StudentDashboard.jsx'
 import { StudentPlaceholder } from './pages/StudentPlaceholder.jsx'
 import {
   CompanySelectionPage,
+  CompanyVerificationPage,
   DtrPage,
   JournalPage,
   RequirementsPage,
@@ -35,6 +36,10 @@ export function StudentApp({ onSwitchRole }) {
           }}
         />
       )
+    }
+
+    if (activeView === 'company-verification') {
+      return <CompanyVerificationPage />
     }
 
     if (activeView === 'requirements') {

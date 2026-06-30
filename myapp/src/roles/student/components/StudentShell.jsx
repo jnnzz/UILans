@@ -8,8 +8,13 @@ const navItems = [
     icon: 'dashboard',
   },
   {
+    id: 'company-verification',
+    label: 'Company Verification',
+    icon: 'building',
+  },
+  {
     id: 'company-selection',
-    label: 'Placement',
+    label: 'Acceptance Confirmation',
     icon: 'briefcase',
   },
   {
@@ -36,6 +41,11 @@ const navItems = [
     id: 'workspaces',
     label: 'Workspaces',
     icon: 'workspace',
+  },
+  {
+    id: 'announcements',
+    label: 'Announcements',
+    icon: 'megaphone',
   },
 ]
 

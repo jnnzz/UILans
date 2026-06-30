@@ -44,6 +44,7 @@ const pageTabs = {
     'Requirements',
     'Final Packages',
     'Completion',
+    'Placement Monitoring',
   ],
   students: ['All Students', 'Track A', 'Track B', 'Completion Ready'],
   reports: ['Generated Reports', 'Templates', 'Export History'],
@@ -210,17 +211,14 @@ function DashboardTabContent({ activeTab, onReview }) {
         ))}
       </section>
 
+      <CoordinatorAnalytics />
+
       <div className="coordinator-grid">
         <ReviewQueuePanel compact onReview={onReview} />
         <aside className="coordinator-side-panel">
           <FocusCard />
           <ReportShortcutCard />
         </aside>
-      </div>
-
-      <div className="coordinator-lower-grid">
-        <ChecklistPanel />
-        <StudentMonitorPanel />
       </div>
     </>
   )
@@ -334,43 +332,6 @@ export function CoordinatorAnalytics() {
         </div>
       </article>
 
-      <article className="analytics-card analytics-trend-card">
-        <header className="analytics-card-heading">
-          <div>
-            <span className="eyebrow">Student progress</span>
-            <h2>Completion readiness trend</h2>
-            <p>Students who have completed every required placement phase.</p>
-          </div>
-          <div className="trend-total"><strong>42</strong><span>ready now</span></div>
-        </header>
-        <div className="trend-chart-canvas" aria-label="Completion readiness trend from January to September">
-          <svg viewBox="0 0 1120 220" preserveAspectRatio="none" role="img" aria-label="Monthly completion readiness">
-            <defs>
-              <linearGradient id="completionArea" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#d69d22" stopOpacity="0.2" />
-                <stop offset="100%" stopColor="#d69d22" stopOpacity="0.01" />
-              </linearGradient>
-            </defs>
-            {[40, 95, 150, 205].map((y) => (
-              <line className="analytics-grid-line" x1="0" x2="1120" y1={y} y2={y} key={y} />
-            ))}
-            <path
-              className="trend-area"
-              d="M0 182 C55 173 84 131 140 137 C195 142 214 165 280 145 C337 128 355 83 420 91 C478 99 496 128 560 112 C618 96 636 58 700 68 C764 78 777 106 840 94 C906 81 927 45 980 56 C1030 66 1069 49 1120 34 L1120 220 L0 220 Z"
-            />
-            <path
-              className="trend-line"
-              d="M0 182 C55 173 84 131 140 137 C195 142 214 165 280 145 C337 128 355 83 420 91 C478 99 496 128 560 112 C618 96 636 58 700 68 C764 78 777 106 840 94 C906 81 927 45 980 56 C1030 66 1069 49 1120 34"
-            />
-            <circle className="trend-focus-ring" cx="980" cy="56" r="7" />
-            <circle className="trend-focus-dot" cx="980" cy="56" r="3" />
-          </svg>
-          <span className="analytics-chart-callout trend-callout"><strong>38</strong><small>August</small></span>
-        </div>
-        <div className="analytics-axis trend-axis">
-          {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'].map((month) => <span key={month}>{month}</span>)}
-        </div>
-      </article>
     </section>
   )
 }
@@ -401,9 +362,127 @@ function ReviewQueuePage({ activeTab, onTabChange, onReview }) {
         }
       />
 
-      <ReviewQueueSummary />
+      {activeTab === 'Placement Monitoring' ? (
+        <PlacementMonitoringPanel />
+      ) : (
+        <>
+          <ReviewQueueSummary />
+          <ReviewQueuePanel queue={filteredQueue} onReview={onReview} />
+        </>
+      )}
+    </>
+  )
+}
 
-      <ReviewQueuePanel queue={filteredQueue} onReview={onReview} />
+function PlacementMonitoringPanel() {
+  const [endingStudent, setEndingStudent] = useState(null)
+  const [endingType, setEndingType] = useState('Cancelled')
+  const startDates = ['June 16, 2026', 'June 18, 2026', 'June 20, 2026', 'June 23, 2026']
+
+  return (
+    <>
+      <section className="placement-monitoring-panel">
+        <div className="coordinator-panel-heading">
+          <div>
+            <span className="eyebrow">Official placements</span>
+            <h2>Placement Monitoring</h2>
+            <p>Track active assignments and formally record placements that end.</p>
+          </div>
+          <label className="compact-search">
+            <Icon name="search" size={17} />
+            <input type="search" placeholder="Find student or company" />
+          </label>
+        </div>
+
+        <div className="placement-monitoring-list">
+          {coordinatorStudents.map((student, index) => (
+            <article className="placement-monitoring-row" key={student.name}>
+              <div className="review-student">
+                <div className="small-avatar" aria-hidden="true">{getInitials(student.name)}</div>
+                <div>
+                  <h3>{student.name}</h3>
+                  <span>{student.section}</span>
+                </div>
+              </div>
+              <div className="placement-company-cell">
+                <small>Company</small>
+                <strong>{student.company}</strong>
+              </div>
+              <span className="track-pill">{student.track}</span>
+              <div className="placement-company-cell">
+                <small>Start date</small>
+                <strong>{startDates[index]}</strong>
+              </div>
+              <span className="status-pill status-accepted">In Progress</span>
+              <button className="details-button" type="button" onClick={() => setEndingStudent(student)}>
+                Manage
+              </button>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {endingStudent && (
+        <div className="review-detail-backdrop" role="presentation" onClick={() => setEndingStudent(null)}>
+          <form
+            className="review-detail-panel placement-ending-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="placement-ending-title"
+            onClick={(event) => event.stopPropagation()}
+            onSubmit={(event) => {
+              event.preventDefault()
+              setEndingStudent(null)
+            }}
+          >
+            <div className="coordinator-panel-heading">
+              <div>
+                <span className="eyebrow">Placement lifecycle</span>
+                <h2 id="placement-ending-title">Record placement ending</h2>
+                <p>{endingStudent.name} · {endingStudent.company}</p>
+              </div>
+              <button className="dtr-modal-close" type="button" aria-label="Close" onClick={() => setEndingStudent(null)}>×</button>
+            </div>
+
+            <div className="placement-ending-choice" role="radiogroup" aria-label="Ending type">
+              {[
+                ['Cancelled', 'Use before meaningful OJT work has started.'],
+                ['Terminated', 'Use after the student has already started OJT.'],
+              ].map(([type, description]) => (
+                <button
+                  className={endingType === type ? 'active' : ''}
+                  type="button"
+                  role="radio"
+                  aria-checked={endingType === type}
+                  onClick={() => setEndingType(type)}
+                  key={type}
+                >
+                  <strong>{type}</strong>
+                  <small>{description}</small>
+                </button>
+              ))}
+            </div>
+
+            <div className="placement-ending-fields">
+              <label className="dtr-entry-field">
+                <span>Ended date</span>
+                <input type="date" defaultValue="2026-06-30" />
+              </label>
+              <label className="dtr-entry-field full-span">
+                <span>Reason</span>
+                <textarea rows="4" placeholder={`Explain why this placement was ${endingType.toLowerCase()}...`} />
+              </label>
+            </div>
+            <p className="placement-ending-note">
+              Existing DTR, journal, and review records remain preserved after this status change.
+            </p>
+            <div className="review-actions">
+              <button className="secondary-button" type="button" onClick={() => setEndingStudent(null)}>Keep placement</button>
+              <button className="primary-button" type="submit">Record {endingType}</button>
+            </div>
+          </form>
+        </div>
+      )}
     </>
   )
 }

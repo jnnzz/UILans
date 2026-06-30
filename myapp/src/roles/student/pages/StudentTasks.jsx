@@ -125,6 +125,29 @@ export function CompanySelectionPage({ onOpenWorkspace }) {
   )
 }
 
+export function CompanyVerificationPage() {
+  return (
+    <main className="student-main">
+      <section className="task-page placement-page">
+        <div className="task-page-heading">
+          <div className="page-title">
+            <span className="eyebrow">Outside or unlisted company</span>
+            <h1>Company Verification</h1>
+            <p>Verify a possible OJT company before declaring Track B in Acceptance Confirmation.</p>
+          </div>
+          <span className="placement-overall-status">
+            <Icon name="building" size={16} />
+            Pre-placement validation
+          </span>
+        </div>
+        <div className="direct-company-verification">
+          <CompanyVerification initialMode="form" />
+        </div>
+      </section>
+    </main>
+  )
+}
+
 function PlacementTrackPicker({ onSelectTrack }) {
   return (
     <main className="student-main placement-track-picker-main">
@@ -618,8 +641,10 @@ export function CompanyVerification({ initialMode = 'status', onVerified, onCanc
           {[
             ['Company name', 'e.g. Acme Technologies'],
             ['Company address', 'Complete office address'],
+            ['Company email', 'company@example.com'],
+            ['Company telephone', 'Official contact number'],
             ['Contact person', 'Supervisor or HR contact'],
-            ['Contact email', 'name@company.com'],
+            ['Contact person position', 'e.g. HR Manager'],
             ['Department / office', 'Proposed assignment'],
             ['Proposed OJT role', 'Role or job description'],
           ].map(([field, placeholder]) => (
@@ -628,6 +653,10 @@ export function CompanyVerification({ initialMode = 'status', onVerified, onCanc
               <input type="text" placeholder={placeholder} />
             </label>
           ))}
+          <label className="task-field full-span">
+            <span>Student reason / remarks</span>
+            <textarea rows="4" placeholder="Explain why you want this company verified as a possible OJT site." />
+          </label>
           <label className="task-field full-span">
             <span>Supporting document</span>
             <button className="upload-dropzone" type="button">
@@ -730,6 +759,10 @@ function AcceptanceConfirmation({ initialTrack = 'track-a', embedded = false, on
           <input value={isTrackB ? 'QA Intern' : 'Product Design Intern'} readOnly />
         </label>
         <label className="task-field">
+          <span>Department / office</span>
+          <input value={isTrackB ? 'Product Engineering' : 'Design Team'} readOnly />
+        </label>
+        <label className="task-field">
           <span>Start date</span>
           <input value="June 16, 2026" readOnly />
         </label>
@@ -740,6 +773,10 @@ function AcceptanceConfirmation({ initialTrack = 'track-a', embedded = false, on
             <div><strong>confirmation-slip-elena.pdf</strong><small>PDF · 1.8 MB · Version 1</small></div>
             <button className="details-button" type="button">View</button>
           </div>
+        </label>
+        <label className="task-field full-span">
+          <span>Student notes</span>
+          <textarea rows="3" placeholder="Add optional placement notes for the coordinator." />
         </label>
         <div className="confirmation-submit-row full-span">
           <div>
@@ -831,6 +868,25 @@ export function DtrPage() {
 function DtrEntryModal({ onClose }) {
   const [method, setMethod] = useState('manual')
   const [qrReady, setQrReady] = useState(false)
+  const methods = [
+    ['manual', 'clock', 'Manual Entry', 'Enter time in and time out together'],
+    ['qr', 'qrCode', 'QR Scan', 'Scan one attendance event at a time'],
+    ['proof', 'upload', 'Upload Proof', 'Attach a photo or attendance file'],
+    ['company', 'building', 'Company Record', 'Use a company-issued record'],
+  ]
+
+  const SessionField = () => (
+    <label className="dtr-entry-field">
+      <span>Session</span>
+      <select defaultValue="whole_day">
+        <option value="whole_day">Whole day</option>
+        <option value="morning">Morning</option>
+        <option value="afternoon">Afternoon</option>
+        <option value="overtime">Overtime</option>
+        <option value="other">Other</option>
+      </select>
+    </label>
+  )
 
   return (
     <div className="dtr-entry-backdrop" role="presentation" onClick={onClose}>
@@ -845,49 +901,37 @@ function DtrEntryModal({ onClose }) {
           <div>
             <span className="eyebrow">Daily time record</span>
             <h2 id="dtr-entry-title">Add DTR Entry</h2>
-            <p>Choose how you want to record today’s attendance.</p>
+            <p>Choose the source of today&apos;s attendance record.</p>
           </div>
           <button className="dtr-modal-close" type="button" aria-label="Close DTR entry" onClick={onClose}>×</button>
         </header>
 
         <div className="dtr-method-picker" aria-label="DTR entry method">
-          <button
-            className={method === 'manual' ? 'dtr-method-card active' : 'dtr-method-card'}
-            type="button"
-            onClick={() => setMethod('manual')}
-          >
-            <span><Icon name="clock" size={19} /></span>
-            <div><strong>Manual Entry</strong><small>Enter your date and work hours</small></div>
-            <i>{method === 'manual' ? 'Selected' : 'Choose'}</i>
-          </button>
-          <button
-            className={method === 'qr' ? 'dtr-method-card active' : 'dtr-method-card'}
-            type="button"
-            onClick={() => setMethod('qr')}
-          >
-            <span><Icon name="qrCode" size={19} /></span>
-            <div><strong>QR Scan</strong><small>Scan the workplace attendance QR</small></div>
-            <i>{method === 'qr' ? 'Selected' : 'Choose'}</i>
-          </button>
+          {methods.map(([value, icon, label, description]) => (
+            <button
+              className={method === value ? 'dtr-method-card active' : 'dtr-method-card'}
+              type="button"
+              onClick={() => {
+                setMethod(value)
+                setQrReady(false)
+              }}
+              key={value}
+            >
+              <span><Icon name={icon} size={19} /></span>
+              <div><strong>{label}</strong><small>{description}</small></div>
+              <i>{method === value ? 'Selected' : 'Choose'}</i>
+            </button>
+          ))}
         </div>
 
-        {method === 'manual' ? (
-          <form
-            className="dtr-manual-form"
-            onSubmit={(event) => {
-              event.preventDefault()
-              onClose()
-            }}
-          >
+        {method === 'manual' && (
+          <form className="dtr-manual-form" onSubmit={(event) => { event.preventDefault(); onClose() }}>
             <div className="dtr-entry-field-grid">
               <label className="dtr-entry-field">
                 <span>Date</span>
                 <input type="date" defaultValue="2026-06-29" />
               </label>
-              <label className="dtr-entry-field">
-                <span>Break (minutes)</span>
-                <input type="number" defaultValue="60" min="0" />
-              </label>
+              <SessionField />
               <label className="dtr-entry-field">
                 <span>Time in</span>
                 <input type="time" />
@@ -895,6 +939,10 @@ function DtrEntryModal({ onClose }) {
               <label className="dtr-entry-field">
                 <span>Time out</span>
                 <input type="time" />
+              </label>
+              <label className="dtr-entry-field">
+                <span>Break (minutes)</span>
+                <input type="number" defaultValue="60" min="0" />
               </label>
               <label className="dtr-entry-field full-span">
                 <span>Task description</span>
@@ -906,8 +954,17 @@ function DtrEntryModal({ onClose }) {
               <button className="primary-button" type="submit"><Icon name="checkCircle" size={16} /> Add Entry</button>
             </footer>
           </form>
-        ) : (
+        )}
+
+        {method === 'qr' && (
           <div className="dtr-qr-content">
+            <div className="dtr-entry-field-grid">
+              <label className="dtr-entry-field">
+                <span>Date</span>
+                <input type="date" defaultValue="2026-06-29" />
+              </label>
+              <SessionField />
+            </div>
             <div className={qrReady ? 'dtr-qr-scanner active' : 'dtr-qr-scanner'}>
               <span className="dtr-qr-frame"><Icon name="qrCode" size={54} /></span>
               <div>
@@ -918,7 +975,7 @@ function DtrEntryModal({ onClose }) {
             </div>
             <div className="dtr-qr-note">
               <Icon name="checkCircle" size={18} />
-              <p><strong>QR records one attendance event at a time.</strong> Scan once for time in and scan again when your duty ends.</p>
+              <p><strong>Time In or Time Out is detected automatically.</strong> The system checks your existing record for this date and session.</p>
             </div>
             <footer className="dtr-entry-modal-footer">
               <button className="secondary-button" type="button" onClick={onClose}>Cancel</button>
@@ -927,6 +984,41 @@ function DtrEntryModal({ onClose }) {
               </button>
             </footer>
           </div>
+        )}
+
+        {(method === 'proof' || method === 'company') && (
+          <form className="dtr-manual-form" onSubmit={(event) => { event.preventDefault(); onClose() }}>
+            <div className="dtr-entry-field-grid">
+              <label className="dtr-entry-field">
+                <span>Date</span>
+                <input type="date" defaultValue="2026-06-29" />
+              </label>
+              <SessionField />
+              {method === 'company' && (
+                <label className="dtr-entry-field full-span">
+                  <span>Record source</span>
+                  <input placeholder="e.g. Full Scale PH biometric record" />
+                </label>
+              )}
+              <button className="upload-dropzone compact full-span" type="button">
+                <Icon name="upload" size={20} />
+                <strong>{method === 'proof' ? 'Upload attendance proof' : 'Upload company attendance record'}</strong>
+                <small>JPG, PNG, or PDF · up to 10 MB</small>
+              </button>
+              <label className="dtr-entry-field full-span">
+                <span>Notes</span>
+                <textarea rows="3" placeholder="Add context about this attendance record..." />
+              </label>
+            </div>
+            <div className="dtr-qr-note">
+              <Icon name="checkCircle" size={18} />
+              <p><strong>This saves as a daily record.</strong> Daily entries do not need approval; only your final DTR package is reviewed.</p>
+            </div>
+            <footer className="dtr-entry-modal-footer">
+              <button className="secondary-button" type="button" onClick={onClose}>Cancel</button>
+              <button className="primary-button" type="submit"><Icon name="checkCircle" size={16} /> Save Recorded Entry</button>
+            </footer>
+          </form>
         )}
       </section>
     </div>
